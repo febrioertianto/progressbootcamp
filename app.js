@@ -5,31 +5,33 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "power_inspect_dashboard_data_v2";
-  const LEGACY_STORAGE_KEY = "power_inspect_dashboard_data_v1";
+  const SCHEMA_VERSION = 3;
+  const STORAGE_KEY = "power_inspect_dashboard_data_v3";
+  const LEGACY_STORAGE_KEYS = [
+    "power_inspect_dashboard_data_v2",
+    "power_inspect_dashboard_data_v1"
+  ];
   const CUSTOM_API_KEY = "power_inspect_custom_api_url";
   const ADMIN_SESSION_KEY = "power_inspect_admin_unlocked";
-
-  const REMOVED_TASK_NAMES = ["recheck flow all fitur"];
 
   const CATEGORIES = [
     {
       name: "Power Swift - ERS",
       cardTitle: "Total Progress Power Swift",
-      eyebrow: "⚡ Power Swift - ERS",
+      eyebrow: "⚡ Power Swift",
       short: "ers",
-      color: "#0284c7",
-      bg: "rgba(2, 132, 199, 0.88)",
-      goal: "Penyelesaian All Fitur UAT — Kamis, 26 Nov 2026"
+      color: "#059669",
+      bg: "rgba(5, 150, 105, 0.9)",
+      goal: "Kamis Siaap UAT !!"
     },
     {
       name: "Migrasi Fasop",
       cardTitle: "Total Progress Migrasi Fasop",
       eyebrow: "🔄 Migrasi Fasop",
       short: "mig",
-      color: "#059669",
-      bg: "rgba(5, 150, 105, 0.88)",
-      goal: "Data Fasop in Production"
+      color: "#0284c7",
+      bg: "rgba(2, 132, 199, 0.9)",
+      goal: "Data Fasop Kal In Production"
     },
     {
       name: "Stress Test",
@@ -37,58 +39,50 @@
       eyebrow: "🔥 Stress Test",
       short: "stress",
       color: "#d97706",
-      bg: "rgba(217, 119, 6, 0.88)",
-      goal: "Rekomendasi jumlah POD pada env Stag PLN"
+      bg: "rgba(217, 119, 6, 0.9)",
+      goal: "Rekomendasi Jumlah POD standby"
     }
   ];
 
   function createDefaultData() {
     const nowIso = new Date().toISOString();
     return {
+      schemaVersion: SCHEMA_VERSION,
       updatedAt: nowIso,
       reportTimestamp: nowIso,
       resumeReport:
-        "Ringkasan Progress Harian Power Inspect:\n" +
-        "• Power Swift - ERS: Pengembangan 6 fitur utama terus berjalan paralel menuju target UAT Kamis, 26 Nov 2026.\n" +
-        "• Migrasi Fasop: Service migrasi sudah masuk tahap verifikasi dan uji sampel data inspeksi Fasop Kal.\n" +
-        "• Stress Test: Baseline pengujian beban modul Fasop & Transmisi mulai dieksekusi di env Staging PLN untuk rekomendasi jumlah POD.\n\n" +
-        "*(Klik tombol 'Edit Narasi' atau 'Update Progress' untuk mengganti narasi & angka sesuai kondisi terbaru.)*",
+        "Ringkasan Progress Percepatan Power Inspect:\n" +
+        "• Power Swift: Fokus penyelesaian 6 fitur utama untuk kesiapan UAT hari Kamis.\n" +
+        "• Migrasi Fasop: Penyelesaian Service Migrasi & eksekusi Migrasi Data Fasop Kal menuju Production.\n" +
+        "• Stress Test: Pengujian beban berjalan bertahap untuk mendapatkan rekomendasi jumlah POD standby.\n\n" +
+        "Detil Stress Test per modul:\n" +
+        "- Fasop: ...\n" +
+        "- Transmisi: ...\n" +
+        "- ERS / FFE / Mantaps: ...",
       tasks: [
-        // 1 - 6: Power Swift - ERS (ReCheck Flow All Fitur removed)
-        { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: 65, status: "In Progress", notes: "", goal: "Penyelesaian All Fitur UAT (Kamis, 26 Nov 2026 UAT)" },
-        { id: 2, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: 55, status: "In Progress", notes: "", goal: "Penyelesaian All Fitur UAT (Kamis, 26 Nov 2026 UAT)" },
-        { id: 3, category: "Power Swift - ERS", name: "Karantina Mobile", progress: 50, status: "In Progress", notes: "", goal: "Penyelesaian All Fitur UAT (Kamis, 26 Nov 2026 UAT)" },
-        { id: 4, category: "Power Swift - ERS", name: "Tindak Lanjut Hasil Karantina Peminjaman", progress: 40, status: "In Progress", notes: "", goal: "Penyelesaian All Fitur UAT (Kamis, 26 Nov 2026 UAT)" },
-        { id: 5, category: "Power Swift - ERS", name: "Monitoring Stock Material", progress: 45, status: "In Progress", notes: "", goal: "Penyelesaian All Fitur UAT (Kamis, 26 Nov 2026 UAT)" },
-        { id: 7, category: "Power Swift - ERS", name: "Pembuatan Doc Skenario Test", progress: 60, status: "In Progress", notes: "", goal: "Penyelesaian All Fitur UAT (Kamis, 26 Nov 2026 UAT)" },
-
-        // 7 - 8: Migrasi Fasop
-        { id: 8, category: "Migrasi Fasop", name: "Pembuatan Service Migrasi", progress: 75, status: "Review", notes: "", goal: "Data Fasop in Production" },
-        { id: 9, category: "Migrasi Fasop", name: "Proses Migrasi Data Inspeksi Fasop Kal", progress: 35, status: "In Progress", notes: "", goal: "Data Fasop in Production" },
-
-        // 9 - 14: Stress Test
-        { id: 10, category: "Stress Test", name: "Stress Test Fasop", progress: 50, status: "In Progress", notes: "", goal: "Mendapatkan rekomendasi jumlah POD pada env Stag PLN" },
-        { id: 11, category: "Stress Test", name: "Stress Test Transmisi", progress: 40, status: "In Progress", notes: "", goal: "Mendapatkan rekomendasi jumlah POD pada env Stag PLN" },
-        { id: 12, category: "Stress Test", name: "Stress Test ERS", progress: 30, status: "In Progress", notes: "", goal: "Mendapatkan rekomendasi jumlah POD pada env Stag PLN" },
-        { id: 13, category: "Stress Test", name: "Stress Test FFE", progress: 25, status: "In Progress", notes: "", goal: "Mendapatkan rekomendasi jumlah POD pada env Stag PLN" },
-        { id: 14, category: "Stress Test", name: "Stress Test Mantaps", progress: 25, status: "In Progress", notes: "", goal: "Mendapatkan rekomendasi jumlah POD pada env Stag PLN" },
-        { id: 15, category: "Stress Test", name: "Stress Test All Modul", progress: 10, status: "Not Started", notes: "", goal: "Mendapatkan rekomendasi jumlah POD pada env Stag PLN" }
+        // Power Swift (Hijau)
+        { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: 0, status: "Not Started" },
+        { id: 2, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: 0, status: "Not Started" },
+        { id: 3, category: "Power Swift - ERS", name: "Karantina Mobile", progress: 0, status: "Not Started" },
+        { id: 4, category: "Power Swift - ERS", name: "Tindak Lanjut", progress: 0, status: "Not Started" },
+        { id: 5, category: "Power Swift - ERS", name: "Monitoring Stock", progress: 0, status: "Not Started" },
+        { id: 6, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: 0, status: "Not Started" },
+        // Migrasi Fasop (Biru)
+        { id: 7, category: "Migrasi Fasop", name: "Service Migrasi", progress: 0, status: "Not Started" },
+        { id: 8, category: "Migrasi Fasop", name: "Migrasi Data Fasop", progress: 0, status: "Not Started" },
+        // Stress Test (Oranye)
+        { id: 9, category: "Stress Test", name: "Stress Test", progress: 0, status: "Not Started" }
       ],
       dailyLogs: []
     };
   }
 
   /**
-   * Membersihkan data lama (termasuk takeout "ReCheck Flow All Fitur" dari
-   * localStorage maupun Google Sheets yang sudah tersimpan sebelumnya)
+   * Migrasi aman dari skema lama (14/15 task) ke skema v3 (9 task ringkas)
+   * sambil mempertahankan angka progress yang sudah pernah diinput user.
    */
   function normalizeData(raw) {
     if (!raw || !Array.isArray(raw.tasks)) return createDefaultData();
-
-    const cleanedTasks = raw.tasks.filter((t) => {
-      const n = String(t.name || "").trim().toLowerCase();
-      return !REMOVED_TASK_NAMES.includes(n);
-    });
 
     let resumeText = typeof raw.resumeReport === "string" ? raw.resumeReport : "";
     if (!resumeText && Array.isArray(raw.dailyLogs) && raw.dailyLogs.length > 0) {
@@ -96,20 +90,58 @@
         String(b.date || "").localeCompare(String(a.date || ""))
       );
       const latest = sorted[0];
-      const parts = [];
-      if (latest.title) parts.push(latest.title);
-      if (latest.narrative) parts.push(latest.narrative);
-      if (latest.blockers) parts.push("Kendala / Blocker:\n" + latest.blockers);
-      if (latest.nextPlan) parts.push("Rencana Besok:\n" + latest.nextPlan);
-      resumeText = parts.join("\n\n");
+      resumeText = [latest.title, latest.narrative].filter(Boolean).join("\n\n");
     }
 
+    // Jika sudah schemaVersion >= 3, pertahankan seluruh task termasuk tambahan manual user
+    if (Number(raw.schemaVersion) >= SCHEMA_VERSION) {
+      return {
+        ...raw,
+        schemaVersion: SCHEMA_VERSION,
+        resumeReport: resumeText,
+        reportTimestamp: raw.reportTimestamp || raw.updatedAt || new Date().toISOString(),
+        updatedAt: raw.updatedAt || new Date().toISOString(),
+        dailyLogs: Array.isArray(raw.dailyLogs) ? raw.dailyLogs : []
+      };
+    }
+
+    // Migrasi dari versi lama (< 3) ke 9 task ringkas
+    const findOldPct = (keywords) => {
+      const found = raw.tasks.find((t) => {
+        const lower = String(t.name || "").toLowerCase();
+        return keywords.some((kw) => lower.includes(kw));
+      });
+      return found ? Math.max(0, Math.min(100, Number(found.progress) || 0)) : 0;
+    };
+
+    const oldStressTasks = raw.tasks.filter((t) => t.category === "Stress Test");
+    const stressAvg = oldStressTasks.length
+      ? Math.round(
+          oldStressTasks.reduce((acc, t) => acc + (Number(t.progress) || 0), 0) /
+            oldStressTasks.length
+        )
+      : 0;
+
+    const toStatus = (pct) => (pct >= 100 ? "Done" : pct === 0 ? "Not Started" : "In Progress");
+
+    const migratedTasks = [
+      { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: findOldPct(["dashboard mobile"]) },
+      { id: 2, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: findOldPct(["verifikasi karantina"]) },
+      { id: 3, category: "Power Swift - ERS", name: "Karantina Mobile", progress: findOldPct(["karantina mobile"]) },
+      { id: 4, category: "Power Swift - ERS", name: "Tindak Lanjut", progress: findOldPct(["tindak lanjut"]) },
+      { id: 5, category: "Power Swift - ERS", name: "Monitoring Stock", progress: findOldPct(["monitoring stock"]) },
+      { id: 6, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: findOldPct(["skenario test"]) },
+      { id: 7, category: "Migrasi Fasop", name: "Service Migrasi", progress: findOldPct(["service migrasi"]) },
+      { id: 8, category: "Migrasi Fasop", name: "Migrasi Data Fasop", progress: findOldPct(["migrasi data"]) },
+      { id: 9, category: "Stress Test", name: "Stress Test", progress: stressAvg }
+    ].map((t) => ({ ...t, status: toStatus(t.progress) }));
+
     return {
-      ...raw,
-      tasks: cleanedTasks,
-      resumeReport: resumeText,
-      reportTimestamp: raw.reportTimestamp || raw.updatedAt || new Date().toISOString(),
+      schemaVersion: SCHEMA_VERSION,
       updatedAt: raw.updatedAt || new Date().toISOString(),
+      reportTimestamp: raw.reportTimestamp || raw.updatedAt || new Date().toISOString(),
+      resumeReport: resumeText || createDefaultData().resumeReport,
+      tasks: migratedTasks,
       dailyLogs: Array.isArray(raw.dailyLogs) ? raw.dailyLogs : []
     };
   }
@@ -128,8 +160,7 @@
     return window.APP_CONFIG || {
       API_URL: "",
       ADMIN_PIN: "2026",
-      PROJECT_TITLE: "PENYELESAIAN MODUL POWER SWIFT, MIGRASI FASOP & STRESS TEST",
-      PROJECT_SUBTITLE: "APLIKASI POWER INSPECT",
+      PROJECT_TITLE: "Progress Report Percepatan Penyelesaian Power Inspect",
       TARGET_UAT_DATE: "2026-11-26",
       TARGET_UAT_LABEL: "Kamis, 26 Nov 2026 (UAT)"
     };
@@ -203,14 +234,7 @@
     el.textContent = message;
     el.className = "toast show " + (type === "success" ? "success" : type === "error" ? "error" : "");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
-  }
-
-  function setSyncPill(state, text) {
-    const pill = document.getElementById("syncPill");
-    const label = document.getElementById("syncLabel");
-    pill.className = "sync-pill " + state;
-    label.textContent = text;
+    toastTimer = setTimeout(() => el.classList.remove("show"), 4200);
   }
 
   function updateCountdownBadge() {
@@ -241,7 +265,13 @@
 
   function loadLocal() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        for (const key of LEGACY_STORAGE_KEYS) {
+          raw = localStorage.getItem(key);
+          if (raw) break;
+        }
+      }
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.tasks)) {
@@ -254,64 +284,59 @@
     return null;
   }
 
+  async function safeParseAppsScriptResponse(res) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(
+        "Akses Google Apps Script ditolak (401). Pastikan pengaturan Deploy 'Who has access' = 'Anyone (Siapa saja)'."
+      );
+    }
+    const text = await res.text();
+    const trimmed = text.trim();
+    if (trimmed.startsWith("<") || trimmed.toLowerCase().includes("accounts.google.com")) {
+      throw new Error(
+        "Apps Script meminta login Google. Ubah Deploy 'Who has access' menjadi 'Anyone (Siapa saja)'."
+      );
+    }
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      throw new Error("Respons Google Apps Script bukan JSON valid.");
+    }
+  }
+
   async function fetchCloudData() {
     const url = getActiveApiUrl();
-    if (!url) {
-      setSyncPill("", "Mode Lokal");
-      return null;
-    }
+    if (!url) return null;
 
-    setSyncPill("syncing", "Sync...");
     try {
       const res = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), {
         method: "GET",
+        redirect: "follow",
         cache: "no-store"
       });
-      const json = await res.json();
+      const json = await safeParseAppsScriptResponse(res);
       if (!json.ok) throw new Error(json.error || "Respons API tidak valid");
-      setSyncPill("online", "Online • Cloud");
       if (json.empty || !json.data) return { empty: true };
       return { empty: false, data: normalizeData(json.data) };
     } catch (err) {
-      console.error("Gagal memuat data cloud:", err);
-      setSyncPill("error", "Offline (Lokal)");
-      showToast("Gagal terhubung ke Google Sheets, menampilkan data lokal.", "error");
+      console.warn("Cloud fetch gagal:", err.message);
       return null;
     }
   }
 
   async function pushCloudData(data) {
     const url = getActiveApiUrl();
-    // Sinkronkan ringkasan ke dailyLogs agar tab DailyLogs_Readable di Google Sheets ikut rapi
-    const metrics = calculateMetrics(data.tasks);
-    const today = getTodayISO();
-    const logEntry = {
-      id: "resume-" + today,
-      date: today,
-      overallProgress: metrics.overallAvg,
-      categorySnapshots: {
-        "Power Swift - ERS": metrics.byCategory["Power Swift - ERS"].avg,
-        "Migrasi Fasop": metrics.byCategory["Migrasi Fasop"].avg,
-        "Stress Test": metrics.byCategory["Stress Test"].avg
-      },
-      title: "Resume Report (" + formatTimestampID(data.reportTimestamp) + ")",
-      narrative: data.resumeReport || "",
-      blockers: "",
-      nextPlan: ""
-    };
-    const otherLogs = (data.dailyLogs || []).filter((l) => l.id !== logEntry.id);
-    data.dailyLogs = [logEntry, ...otherLogs.slice(0, 29)];
+    data.schemaVersion = SCHEMA_VERSION;
 
     if (!url) {
       saveLocal(data);
-      setSyncPill("", "Mode Lokal");
       return { ok: true, localOnly: true };
     }
 
-    setSyncPill("syncing", "Menyimpan...");
     try {
       const res = await fetch(url, {
         method: "POST",
+        redirect: "follow",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "save",
@@ -319,24 +344,21 @@
           data: data
         })
       });
-      const json = await res.json();
+      const json = await safeParseAppsScriptResponse(res);
       if (!json.ok) throw new Error(json.error || "Gagal menyimpan ke Google Sheets");
       if (json.updatedAt) data.updatedAt = json.updatedAt;
       saveLocal(data);
-      setSyncPill("online", "Online • Tersimpan");
-      return { ok: true, localOnly: false };
+      return { ok: true, localOnly: false, historyRow: json.historyRow };
     } catch (err) {
       console.error("Gagal push ke cloud:", err);
       saveLocal(data);
-      setSyncPill("error", "Gagal Sync (Lokal)");
       return { ok: false, error: err.message };
     }
   }
 
   async function initializeData() {
     const cfg = getConfig();
-    document.getElementById("headerTitle").textContent =
-      cfg.PROJECT_TITLE + " — APLIKASI POWER INSPECT";
+    document.getElementById("headerTitle").textContent = cfg.PROJECT_TITLE;
     updateCountdownBadge();
 
     const localData = loadLocal();
@@ -429,10 +451,7 @@
     );
 
     const wrapper = document.getElementById("taskChartWrapper");
-    // Tuned tightly so 14 tasks fit comfortably in 1 viewport without scrolling
-    const dynamicHeight = chartCategoryFilter === "ALL"
-      ? Math.max(395, filtered.length * 29 + 24)
-      : Math.max(240, filtered.length * 42 + 40);
+    const dynamicHeight = Math.max(350, filtered.length * 38 + 34);
     wrapper.style.height = dynamicHeight + "px";
 
     const ctx = document.getElementById("taskChart").getContext("2d");
@@ -454,8 +473,8 @@
             label: "Progress (%)",
             data: values,
             backgroundColor: colors,
-            borderRadius: 6,
-            barThickness: chartCategoryFilter === "ALL" ? 17 : 22
+            borderRadius: 7,
+            barThickness: filtered.length <= 10 ? 22 : 18
           }
         ]
       },
@@ -464,7 +483,7 @@
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { right: 16, top: 2, bottom: 2 }
+          padding: { right: 18, top: 4, bottom: 4 }
         },
         plugins: {
           legend: { display: false },
@@ -473,7 +492,9 @@
               label: (context) => ` Progress: ${context.parsed.x}%`,
               afterLabel: (context) => {
                 const task = filtered[context.dataIndex];
-                return task ? ` Kategori: ${task.category}` : "";
+                if (!task) return "";
+                const label = task.category === "Power Swift - ERS" ? "Power Swift" : task.category;
+                return ` Group: ${label}`;
               }
             }
           },
@@ -482,7 +503,7 @@
             align: "right",
             offset: 6,
             color: "#0f172a",
-            font: { weight: "700", size: 11.5 },
+            font: { weight: "800", size: 12 },
             formatter: (v) => v + "%"
           }
         },
@@ -500,7 +521,7 @@
           y: {
             grid: { display: false },
             ticks: {
-              font: { size: 11.5, weight: "600" },
+              font: { size: 12.5, weight: "700" },
               color: "#1e293b"
             }
           }
@@ -521,7 +542,7 @@
       displayBox.innerHTML = escapeHtml(text);
     } else {
       displayBox.innerHTML =
-        `<span class="resume-empty">Belum ada narasi / resume report. Klik tombol "✏️ Edit Narasi" di kanan atas untuk menuliskan ringkasan laporan hari ini.</span>`;
+        `<span class="resume-empty">Belum ada narasi / resume report. Klik tombol "✏️ Edit Narasi" di bagian bawah halaman untuk menuliskan ringkasan laporan hari ini.</span>`;
     }
 
     const inProgressCount = appData.tasks.filter(
@@ -535,7 +556,7 @@
       </div>
       <div class="mini-stat">
         <div class="mini-stat-label">Selesai</div>
-        <div class="mini-stat-val" style="color:var(--cat-mig);">${metrics.doneCount} / ${metrics.totalCount}</div>
+        <div class="mini-stat-val" style="color:var(--cat-ers);">${metrics.doneCount} / ${metrics.totalCount}</div>
       </div>
       <div class="mini-stat">
         <div class="mini-stat-label">On Progress</div>
@@ -548,16 +569,15 @@
     isInlineEditing = show;
     const displayBox = document.getElementById("resumeDisplayBox");
     const editor = document.getElementById("resumeInlineEditor");
-    const btnEdit = document.getElementById("btnInlineEditResume");
     const textarea = document.getElementById("inlineResumeTextarea");
 
     displayBox.classList.toggle("hidden", show);
     editor.classList.toggle("hidden", !show);
-    btnEdit.classList.toggle("hidden", show);
 
     if (show) {
       textarea.value = appData.resumeReport || "";
-      setTimeout(() => textarea.focus(), 40);
+      textarea.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => textarea.focus(), 120);
     }
   }
 
@@ -581,6 +601,7 @@
       .map((t) => {
         const idx = appData.tasks.indexOf(t);
         const catMeta = getCategoryMeta(t.category);
+        const catDisplay = t.category === "Power Swift - ERS" ? "Power Swift" : t.category;
         const pct = Math.max(0, Math.min(100, Number(t.progress) || 0));
 
         return `
@@ -589,7 +610,7 @@
               <div class="admin-task-title">
                 <span class="admin-task-num">${idx + 1}</span>
                 <strong style="font-size:13.5px;">${escapeHtml(t.name)}</strong>
-                <span class="cat-badge ${catMeta.short}">${escapeHtml(t.category)}</span>
+                <span class="cat-badge ${catMeta.short}">${escapeHtml(catDisplay)}</span>
               </div>
               <button type="button" class="btn btn-danger-outline btn-sm btn-delete-task" data-id="${t.id}" title="Hapus task ini">
                 🗑️
@@ -676,14 +697,14 @@
     activeView = viewName;
     document.getElementById("dashboardView").classList.toggle("hidden", viewName !== "dashboard");
     document.getElementById("adminView").classList.toggle("hidden", viewName !== "admin");
-    document.getElementById("btnToggleAdmin").textContent =
-      viewName === "admin" ? "📊 Lihat Dashboard" : "🔐 Update Progress";
 
     if (viewName === "admin") {
       toggleInlineResumeEditor(false);
       renderAdminPanel();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
@@ -709,7 +730,7 @@
       showToast(
         res.localOnly
           ? "✅ Tersimpan di browser (Mode Lokal)."
-          : "✅ Progress & Narasi tersimpan ke Google Sheets!",
+          : "✅ Progress tersimpan ke Google Sheets (baris riwayat baru tercatat)!",
         "success"
       );
       if (switchToDashboard) openView("dashboard");
@@ -720,36 +741,11 @@
 
   // ==================== EVENT LISTENERS ====================
   function bindEvents() {
-    // Topbar
-    document.getElementById("btnRefresh").addEventListener("click", async () => {
-      const apiUrl = getActiveApiUrl();
-      if (!apiUrl) {
-        renderAll();
-        showToast("Data lokal dimuat ulang.", "info");
-        return;
-      }
-      const res = await fetchCloudData();
-      if (res && !res.empty && res.data) {
-        appData = res.data;
-        saveLocal(appData);
-        renderAll();
-        showToast("✅ Data terbaru dimuat dari Google Sheets.", "success");
-      }
-    });
-
-    document.getElementById("btnPrint").addEventListener("click", () => {
-      if (activeView !== "dashboard") openView("dashboard");
-      if (isInlineEditing) toggleInlineResumeEditor(false);
-      setTimeout(() => window.print(), 200);
-    });
-
-    document.getElementById("btnToggleAdmin").addEventListener("click", () => {
-      openView(activeView === "admin" ? "dashboard" : "admin");
-    });
-
+    // Bottom buttons
+    document.getElementById("btnToggleAdmin").addEventListener("click", () => openView("admin"));
     document.getElementById("btnBackToDashboard").addEventListener("click", () => openView("dashboard"));
 
-    // Inline Resume Editor on Dashboard
+    // Inline Resume Editor
     document.getElementById("btnInlineEditResume").addEventListener("click", () => {
       requirePinThen(() => toggleInlineResumeEditor(true));
     });
@@ -893,9 +889,7 @@
         category: cat,
         name,
         progress: 0,
-        status: "Not Started",
-        notes: "",
-        goal: getCategoryMeta(cat).goal
+        status: "Not Started"
       });
 
       document.getElementById("addTaskModal").classList.add("hidden");
@@ -916,17 +910,16 @@
       try {
         const res = await fetch(url, {
           method: "POST",
+          redirect: "follow",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "ping", pin: getConfig().ADMIN_PIN })
         });
-        const json = await res.json();
+        const json = await safeParseAppsScriptResponse(res);
         if (!json.ok) throw new Error(json.error || "PIN tidak cocok.");
-        setSyncPill("online", "Online • Cloud");
-        resultEl.innerHTML = `<span style="color:var(--cat-mig); font-weight:700;">✅ ${escapeHtml(json.message)}</span>`;
+        resultEl.innerHTML = `<span style="color:var(--cat-ers); font-weight:700;">✅ ${escapeHtml(json.message)}</span>`;
         showToast("Koneksi Google Sheets berhasil!", "success");
       } catch (err) {
-        setSyncPill("error", "Gagal Sync");
-        resultEl.innerHTML = `<span style="color:var(--status-blocked);">❌ Gagal: ${escapeHtml(err.message)}</span>`;
+        resultEl.innerHTML = `<span style="color:var(--status-blocked);">❌ ${escapeHtml(err.message)}</span>`;
       }
     });
 
@@ -941,8 +934,7 @@
     document.getElementById("btnClearApiUrl").addEventListener("click", () => {
       localStorage.removeItem(CUSTOM_API_KEY);
       document.getElementById("inputApiUrl").value = getConfig().API_URL || "";
-      setSyncPill("", "Mode Lokal");
-      document.getElementById("syncTestResult").textContent = "Beralih ke Mode Lokal.";
+      document.getElementById("syncTestResult").textContent = "Beralih ke konfigurasi default / Mode Lokal.";
     });
 
     document.getElementById("btnExportJson").addEventListener("click", () => {
@@ -975,7 +967,7 @@
     });
 
     document.getElementById("btnRestoreDemo").addEventListener("click", async () => {
-      if (!confirm("Reset ke 14 task & contoh data awal?")) return;
+      if (!confirm("Reset ke 9 task bawaan?")) return;
       appData = createDefaultData();
       await persistChanges(false);
     });
