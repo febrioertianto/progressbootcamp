@@ -51,14 +51,11 @@
       updatedAt: nowIso,
       reportTimestamp: nowIso,
       resumeReport:
-        "Ringkasan Progress Percepatan Power Inspect:\n" +
-        "• Power Swift: Fokus penyelesaian 6 fitur utama untuk kesiapan UAT hari Kamis.\n" +
-        "• Migrasi Fasop: Penyelesaian Service Migrasi & eksekusi Migrasi Data Fasop Kal menuju Production.\n" +
-        "• Stress Test: Pengujian beban berjalan bertahap untuk mendapatkan rekomendasi jumlah POD standby.\n\n" +
-        "Detil Stress Test per modul:\n" +
-        "- Fasop: ...\n" +
-        "- Transmisi: ...\n" +
-        "- ERS / FFE / Mantaps: ...",
+        "## Reporting Resume\n" +
+        "Fokus percepatan tim saat ini diarahkan pada penyelesaian seluruh fitur prioritas Power Swift menuju UAT hari Kamis, penyelesaian migrasi data Fasop Kal ke Production, serta eksekusi stress test untuk rekomendasi jumlah POD standby.\n\n" +
+        "• **Power Swift**: Penyelesaian 6 fitur utama berjalan paralel untuk kesiapan UAT.\n" +
+        "• **Migrasi Fasop**: Service Migrasi & Migrasi Data Fasop Kal terus divalidasi.\n" +
+        "• **Stress Test**: Pengujian per modul berjalan bertahap (Fasop, Transmisi, ERS, FFE, Mantaps).",
       tasks: [
         // Power Swift (Hijau)
         { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: 0, status: "Not Started" },
@@ -451,12 +448,12 @@
     );
 
     const wrapper = document.getElementById("taskChartWrapper");
-    const dynamicHeight = Math.max(350, filtered.length * 38 + 34);
+    const dynamicHeight = Math.max(265, filtered.length * 29 + 24);
     wrapper.style.height = dynamicHeight + "px";
 
     const ctx = document.getElementById("taskChart").getContext("2d");
 
-    const labels = filtered.map((t, idx) => `${idx + 1}. ${t.name}`);
+    const labels = filtered.map((t) => t.name);
     const values = filtered.map((t) => Number(t.progress) || 0);
     const colors = filtered.map((t) => getCategoryMeta(t.category).bg);
 
@@ -473,8 +470,8 @@
             label: "Progress (%)",
             data: values,
             backgroundColor: colors,
-            borderRadius: 7,
-            barThickness: filtered.length <= 10 ? 22 : 18
+            borderRadius: 6,
+            barThickness: filtered.length <= 10 ? 16 : 13
           }
         ]
       },
@@ -483,7 +480,7 @@
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { right: 18, top: 4, bottom: 4 }
+          padding: { right: 16, top: 2, bottom: 2 }
         },
         plugins: {
           legend: { display: false },
@@ -501,9 +498,9 @@
           datalabels: {
             anchor: "end",
             align: "right",
-            offset: 6,
+            offset: 5,
             color: "#0f172a",
-            font: { weight: "800", size: 12 },
+            font: { weight: "800", size: 11 },
             formatter: (v) => v + "%"
           }
         },
@@ -513,7 +510,7 @@
             max: 112,
             ticks: {
               stepSize: 20,
-              font: { size: 11 },
+              font: { size: 10.5 },
               callback: (v) => (v <= 100 ? v + "%" : "")
             },
             grid: { color: "#eef2f6" }
@@ -521,7 +518,7 @@
           y: {
             grid: { display: false },
             ticks: {
-              font: { size: 12.5, weight: "700" },
+              font: { size: 11.5, weight: "700" },
               color: "#1e293b"
             }
           }
@@ -534,12 +531,95 @@
     if (allBtn) allBtn.textContent = `Semua (${appData.tasks.length})`;
   }
 
+  function formatInlineMarkdown(escapedLine) {
+    return escapedLine
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*]+?)\*(?!\*)/g, "$1<em>$2</em>");
+  }
+
+  /**
+   * Mengubah teks narasi menjadi HTML terstruktur (Subjudul, Paragraf, Bullet Point, & Daftar Bernomor)
+   */
+  function formatResumeToHtml(rawText) {
+    const lines = String(rawText || "").replace(/\r\n/g, "\n").split("\n");
+    const htmlParts = [];
+    let listType = null; // "ul" | "ol" | null
+    let paragraphLines = [];
+
+    const flushParagraph = () => {
+      if (paragraphLines.length) {
+        htmlParts.push(`<p>${paragraphLines.join("<br>")}</p>`);
+        paragraphLines = [];
+      }
+    };
+
+    const closeList = () => {
+      if (listType) {
+        htmlParts.push(`</${listType}>`);
+        listType = null;
+      }
+    };
+
+    lines.forEach((rawLine) => {
+      const trimmed = rawLine.trim();
+
+      if (!trimmed) {
+        flushParagraph();
+        closeList();
+        return;
+      }
+
+      // Heading: "## Judul" atau "### Judul"
+      const headingMatch = trimmed.match(/^#{1,3}\s+(.+)$/);
+      if (headingMatch) {
+        flushParagraph();
+        closeList();
+        htmlParts.push(`<h4>${formatInlineMarkdown(escapeHtml(headingMatch[1]))}</h4>`);
+        return;
+      }
+
+      // Bullet point: "• ", "- ", "* "
+      const bulletMatch = trimmed.match(/^(?:[•\-\*])\s+(.+)$/);
+      if (bulletMatch) {
+        flushParagraph();
+        if (listType !== "ul") {
+          closeList();
+          htmlParts.push("<ul>");
+          listType = "ul";
+        }
+        htmlParts.push(`<li>${formatInlineMarkdown(escapeHtml(bulletMatch[1]))}</li>`);
+        return;
+      }
+
+      // Numbered list: "1. ", "2) "
+      const numMatch = trimmed.match(/^\d+[\.\)]\s+(.+)$/);
+      if (numMatch) {
+        flushParagraph();
+        if (listType !== "ol") {
+          closeList();
+          htmlParts.push("<ol>");
+          listType = "ol";
+        }
+        htmlParts.push(`<li>${formatInlineMarkdown(escapeHtml(numMatch[1]))}</li>`);
+        return;
+      }
+
+      // Normal paragraph line
+      closeList();
+      paragraphLines.push(formatInlineMarkdown(escapeHtml(trimmed)));
+    });
+
+    flushParagraph();
+    closeList();
+    return htmlParts.join("");
+  }
+
   function renderResumePanel(metrics) {
     const displayBox = document.getElementById("resumeDisplayBox");
     const text = (appData.resumeReport || "").trim();
 
     if (text) {
-      displayBox.innerHTML = escapeHtml(text);
+      displayBox.innerHTML = formatResumeToHtml(text);
     } else {
       displayBox.innerHTML =
         `<span class="resume-empty">Belum ada narasi / resume report. Klik tombol "✏️ Edit Narasi" di bagian bawah halaman untuk menuliskan ringkasan laporan hari ini.</span>`;
@@ -739,8 +819,149 @@
     }
   }
 
+  // ==================== FORMATTING TOOLBAR HELPERS ====================
+  const RESUME_TEMPLATE =
+    "## Reporting Resume\n" +
+    "Tuliskan paragraf ringkasan utama di sini, misalnya fokus percepatan tim atau kendala yang menjadi perhatian utama saat ini.\n\n" +
+    "• Poin pertama: progres fitur atau hasil uji coba terbaru.\n" +
+    "• Poin kedua: status tahapan yang masih berjalan (on progress).\n" +
+    "• Poin ketiga: tindak lanjut / target berikutnya.";
+
+  function applyToolbarCommand(textarea, cmd) {
+    if (!textarea) return;
+    textarea.focus();
+
+    const value = textarea.value;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = value.slice(start, end);
+
+    const replaceRange = (replacement, cursorOffsetFromStart) => {
+      textarea.value = value.slice(0, start) + replacement + value.slice(end);
+      const pos = start + (cursorOffsetFromStart !== undefined ? cursorOffsetFromStart : replacement.length);
+      textarea.setSelectionRange(pos, pos);
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+
+    if (cmd === "template") {
+      if (value.trim() && !confirm("Ganti isi teks saat ini dengan contoh format Paragraf & Point?")) {
+        return;
+      }
+      textarea.value = RESUME_TEMPLATE;
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      return;
+    }
+
+    if (cmd === "bold") {
+      const inner = selected || "teks tebal";
+      replaceRange(`**${inner}**`, selected ? inner.length + 4 : inner.length + 2);
+      return;
+    }
+
+    if (cmd === "italic") {
+      const inner = selected || "teks miring";
+      replaceRange(`*${inner}*`, selected ? inner.length + 2 : inner.length + 1);
+      return;
+    }
+
+    // Line-based commands: heading, bullet, number
+    const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+    const lineEndIdx = value.indexOf("\n", end);
+    const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
+    const block = value.slice(lineStart, lineEnd);
+    const lines = block.split("\n");
+
+    let transformed;
+    if (cmd === "heading") {
+      transformed = lines.map((line) => {
+        const clean = line.replace(/^#{1,3}\s+/, "");
+        return clean.trim() ? `## ${clean}` : "## Judul Bagian";
+      }).join("\n");
+    } else if (cmd === "bullet") {
+      transformed = lines.map((line) => {
+        const clean = line.replace(/^(?:[•\-\*]|\d+[\.\)])\s+/, "");
+        return clean.trim() ? `• ${clean}` : "• ";
+      }).join("\n");
+    } else if (cmd === "number") {
+      transformed = lines.map((line, i) => {
+        const clean = line.replace(/^(?:[•\-\*]|\d+[\.\)])\s+/, "");
+        return clean.trim() ? `${i + 1}. ${clean}` : `${i + 1}. `;
+      }).join("\n");
+    } else {
+      return;
+    }
+
+    textarea.value = value.slice(0, lineStart) + transformed + value.slice(lineEnd);
+    const newPos = lineStart + transformed.length;
+    textarea.setSelectionRange(newPos, newPos);
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function handleSmartListEnter(e) {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const ta = e.target;
+    const val = ta.value;
+    const pos = ta.selectionStart;
+    if (pos !== ta.selectionEnd) return;
+
+    const lineStart = val.lastIndexOf("\n", pos - 1) + 1;
+    const currentLine = val.slice(lineStart, pos);
+
+    // Bullet auto-continue
+    const bulletMatch = currentLine.match(/^([•\-\*]\s+)(.*)$/);
+    if (bulletMatch) {
+      e.preventDefault();
+      if (!bulletMatch[2].trim()) {
+        // Exit empty bullet cleanly
+        ta.value = val.slice(0, lineStart) + val.slice(pos);
+        ta.setSelectionRange(lineStart, lineStart);
+      } else {
+        const insert = "\n" + bulletMatch[1];
+        ta.value = val.slice(0, pos) + insert + val.slice(pos);
+        const nextPos = pos + insert.length;
+        ta.setSelectionRange(nextPos, nextPos);
+      }
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+      return;
+    }
+
+    // Numbered list auto-continue
+    const numMatch = currentLine.match(/^(\d+)([\.\)]\s+)(.*)$/);
+    if (numMatch) {
+      e.preventDefault();
+      if (!numMatch[3].trim()) {
+        ta.value = val.slice(0, lineStart) + val.slice(pos);
+        ta.setSelectionRange(lineStart, lineStart);
+      } else {
+        const nextNum = parseInt(numMatch[1], 10) + 1;
+        const insert = `\n${nextNum}${numMatch[2]}`;
+        ta.value = val.slice(0, pos) + insert + val.slice(pos);
+        const nextPos = pos + insert.length;
+        ta.setSelectionRange(nextPos, nextPos);
+      }
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }
+
   // ==================== EVENT LISTENERS ====================
   function bindEvents() {
+    // Formatting Toolbars & Smart List Enter
+    document.querySelectorAll(".editor-toolbar").forEach((toolbar) => {
+      toolbar.addEventListener("click", (e) => {
+        const btn = e.target.closest(".toolbar-btn");
+        if (!btn) return;
+        const targetId = toolbar.dataset.target;
+        const textarea = document.getElementById(targetId);
+        applyToolbarCommand(textarea, btn.dataset.cmd);
+      });
+    });
+
+    ["inlineResumeTextarea", "adminResumeTextarea"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("keydown", handleSmartListEnter);
+    });
+
     // Bottom buttons
     document.getElementById("btnToggleAdmin").addEventListener("click", () => openView("admin"));
     document.getElementById("btnBackToDashboard").addEventListener("click", () => openView("dashboard"));

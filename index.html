@@ -73,12 +73,12 @@
           </div>
         </div>
 
-        <!-- Right: Narasi / Resume Report + Timestamp -->
+        <!-- Right: Reporting Resume + Timestamp -->
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">📝 Narasi / Resume Report</div>
-              <div class="card-subtitle">Ringkasan progress &amp; highlight laporan harian</div>
+              <div class="card-title">📝 Reporting Resume</div>
+              <div class="card-subtitle">Ringkasan narasi &amp; poin penting progress harian</div>
             </div>
           </div>
           <div class="card-body">
@@ -88,16 +88,29 @@
               <span class="timestamp-value" id="reportTimestampText">-</span>
             </div>
 
-            <!-- Read-Only Display (Clean for Screenshot) -->
+            <!-- Read-Only Formatted Display (Paragraph + Bullet Points, Clean for Screenshot) -->
             <div class="resume-display-box" id="resumeDisplayBox"></div>
 
-            <!-- Inline Text Box Editor (Triggered from Bottom Button) -->
+            <!-- Inline Text Box Editor with Formatting Toolbar -->
             <div class="resume-inline-editor hidden" id="resumeInlineEditor">
-              <textarea
-                id="inlineResumeTextarea"
-                class="resume-textarea"
-                placeholder="Tuliskan narasi / resume report harian di sini..."
-              ></textarea>
+              <div class="editor-with-toolbar">
+                <div class="editor-toolbar" data-target="inlineResumeTextarea">
+                  <button type="button" class="toolbar-btn" data-cmd="heading" title="Buat Judul / Subjudul">H Judul</button>
+                  <button type="button" class="toolbar-btn" data-cmd="bold" title="Cetak Tebal"><b>B</b></button>
+                  <button type="button" class="toolbar-btn" data-cmd="italic" title="Cetak Miring"><i>I</i></button>
+                  <span class="toolbar-sep"></span>
+                  <button type="button" class="toolbar-btn" data-cmd="bullet" title="Buat Daftar Bullet Point">• Point</button>
+                  <button type="button" class="toolbar-btn" data-cmd="number" title="Buat Daftar Bernomor">1. Nomor</button>
+                  <span class="toolbar-sep"></span>
+                  <button type="button" class="toolbar-btn" data-cmd="template" title="Sisipkan Contoh Format Paragraf & Point">📋 Contoh Format</button>
+                </div>
+                <textarea
+                  id="inlineResumeTextarea"
+                  class="resume-textarea"
+                  placeholder="Tulis paragraf pembuka, lalu ketik '- ' atau klik '• Point' untuk membuat daftar poin..."
+                ></textarea>
+              </div>
+              <div class="editor-hint">Tip: Ketik <code>- </code> atau <code>• </code> di awal baris untuk bullet point, <code>## </code> untuk subjudul, dan Enter 2× untuk paragraf baru.</div>
               <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span style="font-size:11.5px; color:var(--text-muted);">Timestamp otomatis diperbarui saat disimpan</span>
                 <div style="display:flex; gap:8px;">
@@ -162,13 +175,26 @@
           </div>
           <div class="card-body">
             <div class="form-group">
-              <label class="form-label" for="adminResumeTextarea">Narasi / Resume Report</label>
-              <textarea
-                id="adminResumeTextarea"
-                class="form-control"
-                style="min-height:115px;"
-                placeholder="Tuliskan ringkasan progress harian, detil stress test per modul, kendala/blocker, dan target berikutnya..."
-              ></textarea>
+              <label class="form-label" for="adminResumeTextarea">Reporting Resume (Mendukung Paragraf, Subjudul &amp; Bullet Point)</label>
+              <div class="editor-with-toolbar">
+                <div class="editor-toolbar" data-target="adminResumeTextarea">
+                  <button type="button" class="toolbar-btn" data-cmd="heading" title="Buat Judul / Subjudul">H Judul</button>
+                  <button type="button" class="toolbar-btn" data-cmd="bold" title="Cetak Tebal"><b>B</b></button>
+                  <button type="button" class="toolbar-btn" data-cmd="italic" title="Cetak Miring"><i>I</i></button>
+                  <span class="toolbar-sep"></span>
+                  <button type="button" class="toolbar-btn" data-cmd="bullet" title="Buat Daftar Bullet Point">• Point</button>
+                  <button type="button" class="toolbar-btn" data-cmd="number" title="Buat Daftar Bernomor">1. Nomor</button>
+                  <span class="toolbar-sep"></span>
+                  <button type="button" class="toolbar-btn" data-cmd="template" title="Sisipkan Contoh Format Paragraf & Point">📋 Contoh Format</button>
+                </div>
+                <textarea
+                  id="adminResumeTextarea"
+                  class="form-control"
+                  style="min-height:140px;"
+                  placeholder="Tulis paragraf ringkasan, lalu ketik '- ' atau klik '• Point' untuk daftar poin..."
+                ></textarea>
+              </div>
+              <div class="editor-hint">Tip: Ketik <code>- </code> atau <code>• </code> di awal baris untuk bullet point rapi, <code>## </code> untuk subjudul, <code>**teks**</code> untuk tebal, dan Enter 2× untuk paragraf baru.</div>
             </div>
             <div style="font-size:12px; color:var(--text-secondary);">
               Timestamp Report saat ini: <strong id="adminTimestampPreview">-</strong> (otomatis diperbarui &amp; insert row riwayat baru di Google Sheets saat klik Simpan)
