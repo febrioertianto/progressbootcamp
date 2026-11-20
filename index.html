@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Progress — Aplikasi Power Inspect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js & DataLabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+</head>
+<body>
+
+  <!-- ==================== COMPACT EXECUTIVE HEADER ==================== -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">⚡</div>
+        <div>
+          <div class="brand-title" id="headerTitle">PENYELESAIAN MODUL POWER SWIFT, MIGRASI FASOP &amp; STRESS TEST — POWER INSPECT</div>
+          <div class="brand-meta-row">
+            <span class="header-chip uat" id="uatCountdownBadge">📅 Target UAT: Kamis, 26 Nov 2026</span>
+            <span class="header-chip overall" id="headerOverallBadge">📊 Overall: 0%</span>
+            <span class="header-chip" id="headerTimestampBadge">🕒 Report: -</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-actions no-print">
+        <div class="sync-pill" id="syncPill" title="Status sinkronisasi database">
+          <span class="sync-dot"></span>
+          <span id="syncLabel">Mode Lokal</span>
+        </div>
+        <button class="btn btn-glass" id="btnRefresh" type="button" title="Muat ulang data terbaru">
+          ↻ Refresh
+        </button>
+        <button class="btn btn-glass" id="btnPrint" type="button" title="Cetak / Export 1 Halaman PDF">
+          🖨️ PDF
+        </button>
+        <button class="btn btn-accent" id="btnToggleAdmin" type="button">
+          🔐 Update Progress
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="container">
+
+    <!-- ==========================================================
+         VIEW 1: SINGLE-SCREEN EXECUTIVE DASHBOARD
+         ========================================================== -->
+    <div id="dashboardView">
+
+      <!-- 3 Eye-Catching Category Hero Cards -->
+      <section class="hero-cards-grid" id="heroCardsGrid"></section>
+
+      <!-- Main Split: Task Progress Chart (Left) + Resume Report Text Box (Right) -->
+      <section class="main-split-grid">
+
+        <!-- Left: Grafik Progress per Task -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">🎯 Grafik Progress per Task</div>
+              <div class="card-subtitle">Capaian detail tiap item pekerjaan (0% – 100%)</div>
+            </div>
+            <div class="filter-pills no-print" id="chartFilterPills">
+              <button class="filter-pill active" data-cat="ALL" type="button">Semua (14)</button>
+              <button class="filter-pill" data-cat="Power Swift - ERS" type="button">Power Swift</button>
+              <button class="filter-pill" data-cat="Migrasi Fasop" type="button">Migrasi Fasop</button>
+              <button class="filter-pill" data-cat="Stress Test" type="button">Stress Test</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="task-chart-box" id="taskChartWrapper">
+              <canvas id="taskChart"></canvas>
+            </div>
+            <div class="chart-legend-strip">
+              <span class="legend-item"><span class="legend-dot" style="background:#0284c7;"></span>Power Swift - ERS</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#059669;"></span>Migrasi Fasop</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#d97706;"></span>Stress Test</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Resume / Narasi Report + Timestamp -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">📝 Narasi / Resume Report</div>
+              <div class="card-subtitle">Ringkasan progress &amp; highlight laporan harian</div>
+            </div>
+            <button class="btn btn-outline btn-sm no-print" id="btnInlineEditResume" type="button">
+              ✏️ Edit Narasi
+            </button>
+          </div>
+          <div class="card-body">
+            <!-- Prominent Report Timestamp -->
+            <div class="timestamp-banner">
+              <span class="timestamp-label">🕒 Waktu Reporting:</span>
+              <span class="timestamp-value" id="reportTimestampText">-</span>
+            </div>
+
+            <!-- Read-Only Display (Clean for Screenshot) -->
+            <div class="resume-display-box" id="resumeDisplayBox"></div>
+
+            <!-- Inline Text Box Editor (Appears on click Edit Narasi) -->
+            <div class="resume-inline-editor hidden" id="resumeInlineEditor">
+              <textarea
+                id="inlineResumeTextarea"
+                class="resume-textarea"
+                placeholder="Tuliskan narasi / resume report harian di sini (highlight pencapaian, kendala, dan rencana tindak lanjut)..."
+              ></textarea>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:11.5px; color:var(--text-muted);">Timestamp otomatis diperbarui saat disimpan</span>
+                <div style="display:flex; gap:8px;">
+                  <button type="button" class="btn btn-outline btn-sm" id="btnCancelInlineResume">Batal</button>
+                  <button type="button" class="btn btn-primary btn-sm" id="btnSaveInlineResume">💾 Simpan Narasi</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Compact Summary Footer -->
+            <div class="resume-footer-stats" id="resumeFooterStats"></div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- ==========================================================
+         VIEW 2: MENU UPDATE MANDIRI (ADMIN PANEL)
+         ========================================================== -->
+    <div id="adminView" class="hidden">
+      <div class="admin-banner">
+        <div>
+          <strong>🛠️ Mode Update Progress &amp; Narasi Report</strong> — Ubah persentase tiap task dan tulis resume report, lalu klik <strong>Simpan &amp; Lihat Dashboard</strong>.
+        </div>
+        <button class="btn btn-outline btn-sm" id="btnBackToDashboard" type="button">
+          ← Kembali ke Dashboard
+        </button>
+      </div>
+
+      <div class="admin-subtabs">
+        <button class="admin-subtab active" data-subtab="update" type="button">1. Update Progress &amp; Resume Report</button>
+        <button class="admin-subtab" data-subtab="sync" type="button">2. Sinkronisasi Online &amp; Backup</button>
+      </div>
+
+      <!-- SUBTAB 1: UPDATE TASKS + RESUME REPORT -->
+      <div id="subtab-update">
+
+        <!-- Resume Report & Timestamp Card -->
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">📝 Narasi / Resume Report &amp; Timestamp</div>
+              <div class="card-subtitle">Teks ini tampil langsung di panel kanan layar utama Dashboard</div>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btnStampNow">🕒 Set Waktu Sekarang</button>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label" for="adminResumeTextarea">Narasi / Resume Report</label>
+              <textarea
+                id="adminResumeTextarea"
+                class="form-control"
+                style="min-height:115px;"
+                placeholder="Tuliskan ringkasan progress harian, pencapaian utama, kendala/blocker, dan target berikutnya..."
+              ></textarea>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary);">
+              Timestamp Report saat ini: <strong id="adminTimestampPreview">-</strong> *(otomatis diperbarui ke waktu sekarang setiap kali Anda klik Simpan)*
+            </div>
+          </div>
+        </div>
+
+        <!-- 14 Tasks Progress Sliders -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">🎯 Update Progress per Task</div>
+              <div class="card-subtitle">Geser slider atau ketik angka 0–100% untuk setiap pekerjaan</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <div class="filter-pills" id="adminFilterPills">
+                <button class="filter-pill active" data-cat="ALL" type="button">Semua</button>
+                <button class="filter-pill" data-cat="Power Swift - ERS" type="button">Power Swift</button>
+                <button class="filter-pill" data-cat="Migrasi Fasop" type="button">Migrasi Fasop</button>
+                <button class="filter-pill" data-cat="Stress Test" type="button">Stress Test</button>
+              </div>
+              <button class="btn btn-outline btn-sm" id="btnOpenAddTask" type="button">+ Tambah Task</button>
+              <button class="btn btn-danger-outline btn-sm" id="btnResetAllZero" type="button">Reset 0%</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="admin-task-grid" id="adminTaskList"></div>
+          </div>
+        </div>
+
+        <div class="sticky-save-bar">
+          <div>
+            <strong>Simpan Update Progress &amp; Resume Report</strong>
+            <div style="font-size:12px; opacity:0.88;" id="liveAvgPreview">Overall: 0%</div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-glass" id="btnSaveOnly" type="button">💾 Simpan</button>
+            <button class="btn btn-accent" id="btnSaveAndView" type="button">💾 Simpan &amp; Lihat Dashboard</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 2: ONLINE SYNC & BACKUP -->
+      <div id="subtab-sync" class="hidden">
+        <div class="sync-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">☁️ Koneksi Database Online (Google Sheets)</div>
+                <div class="card-subtitle">Sinkronisasi otomatis agar atasan selalu melihat angka &amp; narasi terbaru</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label" for="inputApiUrl">Google Apps Script Web App URL</label>
+                <input type="url" id="inputApiUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec" />
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                <button class="btn btn-primary" id="btnSaveApiUrl" type="button">Simpan &amp; Tes Koneksi</button>
+                <button class="btn btn-success" id="btnForcePushCloud" type="button">⬆️ Push ke Cloud</button>
+                <button class="btn btn-outline" id="btnClearApiUrl" type="button">Mode Lokal</button>
+              </div>
+              <div id="syncTestResult" style="margin-top:10px; font-size:12.5px;"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">💾 Backup &amp; Restore Data (JSON)</div>
+                <div class="card-subtitle">Unduh cadangan data atau kembalikan data awal</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
+                Simpan salinan file <code>.json</code> sebagai arsip laporan harian atau pindahkan data ke perangkat lain.
+              </p>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-outline" id="btnExportJson" type="button">⬇️ Download JSON</button>
+                <label class="btn btn-outline" style="cursor:pointer;">
+                  ⬆️ Import JSON
+                  <input type="file" id="inputImportJson" accept=".json" class="hidden" />
+                </label>
+                <button class="btn btn-danger-outline" id="btnRestoreDemo" type="button">↺ Reset Data Awal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== PIN MODAL ==================== -->
+  <div class="modal-backdrop hidden" id="pinModal">
+    <div class="modal-box">
+      <div class="modal-title">🔐 Masukkan PIN Admin</div>
+      <div class="modal-desc">
+        Menu update dilindungi PIN agar tampilan laporan tetap aman. (PIN bawaan: <strong>2026</strong>)
+      </div>
+      <form id="pinForm">
+        <div class="form-group">
+          <label class="form-label" for="pinInput">PIN Admin</label>
+          <input type="password" id="pinInput" class="form-control" placeholder="Masukkan PIN..." autocomplete="off" required />
+          <div id="pinError" style="color:var(--status-blocked); font-size:12px; margin-top:6px;" class="hidden">
+            PIN salah. Silakan coba lagi.
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="btnCancelPin">Batal</button>
+          <button type="submit" class="btn btn-primary">Buka Menu Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== ADD TASK MODAL ==================== -->
+  <div class="modal-backdrop hidden" id="addTaskModal">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-title">➕ Tambah Task Baru</div>
+      <div class="modal-desc">Tambahkan item pekerjaan baru ke dalam grafik progress.</div>
+      <form id="addTaskForm">
+        <div class="form-group">
+          <label class="form-label" for="newTaskCategory">Kategori</label>
+          <select id="newTaskCategory" class="form-control" required>
+            <option value="Power Swift - ERS">Power Swift - ERS</option>
+            <option value="Migrasi Fasop">Migrasi Fasop</option>
+            <option value="Stress Test">Stress Test</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="newTaskName">Nama Task</label>
+          <input type="text" id="newTaskName" class="form-control" placeholder="Contoh: Perbaikan Bug UAT Modul ERS" required />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="btnCancelAddTask">Batal</button>
+          <button type="submit" class="btn btn-primary">Tambah Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
