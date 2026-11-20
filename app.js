@@ -170,11 +170,24 @@
   }
 
   function getTodayISO() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    try {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+      const y = parts.find((p) => p.type === "year").value;
+      const m = parts.find((p) => p.type === "month").value;
+      const d = parts.find((p) => p.type === "day").value;
+      return `${y}-${m}-${d}`;
+    } catch {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
   }
 
   function formatTimestampID(isoString) {
@@ -182,6 +195,7 @@
     const dt = new Date(isoString);
     if (isNaN(dt.getTime())) return isoString;
     return dt.toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
       weekday: "short",
       day: "numeric",
       month: "short",
@@ -234,14 +248,22 @@
     toastTimer = setTimeout(() => el.classList.remove("show"), 4200);
   }
 
+  function parseIsoDateToUtcMs(isoYmd) {
+    const match = String(isoYmd || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return NaN;
+    return Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
   function updateCountdownBadge() {
     const cfg = getConfig();
     const badge = document.getElementById("uatCountdownBadge");
-    if (!cfg.TARGET_UAT_DATE) return;
+    if (!badge || !cfg.TARGET_UAT_DATE) return;
 
-    const today = new Date(getTodayISO() + "T00:00:00");
-    const target = new Date(cfg.TARGET_UAT_DATE + "T00:00:00");
-    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+    const todayUtc = parseIsoDateToUtcMs(getTodayISO());
+    const targetUtc = parseIsoDateToUtcMs(cfg.TARGET_UAT_DATE);
+    if (isNaN(todayUtc) || isNaN(targetUtc)) return;
+
+    const diffDays = Math.round((targetUtc - todayUtc) / 86400000);
 
     let suffix = "";
     if (diffDays > 0) suffix = ` • H-${diffDays}`;
@@ -377,6 +399,7 @@
   // ==================== RENDER SINGLE-SCREEN DASHBOARD ====================
   function renderAll() {
     if (!appData) return;
+    updateCountdownBadge();
     const metrics = calculateMetrics(appData.tasks);
     const tsFormatted = formatTimestampID(appData.reportTimestamp || appData.updatedAt);
 
@@ -1198,5 +1221,10 @@
   document.addEventListener("DOMContentLoaded", () => {
     bindEvents();
     initializeData();
+    // Perbarui countdown H-X otomatis setiap 1 menit & saat tab kembali aktif
+    setInterval(updateCountdownBadge, 60000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) updateCountdownBadge();
+    });
   });
 })();

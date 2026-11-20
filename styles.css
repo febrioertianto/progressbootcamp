@@ -540,21 +540,22 @@ body {
   background: #ffffff;
   border: 1.5px dashed #1e4b8f;
   border-radius: 14px;
-  padding: 14px 18px;
-  font-size: 13px;
-  line-height: 1.58;
+  padding: 12px 15px;
+  font-size: 9pt;
+  line-height: 1.2;
   color: #1e293b;
   overflow-y: auto;
   min-height: 215px;
-  max-height: 270px;
+  max-height: 280px;
 }
 
-/* Structured Paragraph & Bullet Typography inside Resume Box */
+/* Structured Paragraph & Bullet Typography inside Resume Box (Size 9pt, Single Spacing) */
 .resume-display-box h4 {
-  font-size: 14.5px;
+  font-size: 10pt;
   font-weight: 800;
   color: #0b4f8a;
-  margin: 10px 0 5px;
+  line-height: 1.2;
+  margin: 6px 0 3px;
 }
 
 .resume-display-box h4:first-child {
@@ -562,7 +563,7 @@ body {
 }
 
 .resume-display-box p {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   text-align: left;
 }
 
@@ -572,8 +573,8 @@ body {
 
 .resume-display-box ul,
 .resume-display-box ol {
-  margin: 4px 0 10px;
-  padding-left: 20px;
+  margin: 2px 0 5px;
+  padding-left: 18px;
 }
 
 .resume-display-box ul:last-child,
@@ -582,8 +583,8 @@ body {
 }
 
 .resume-display-box li {
-  margin-bottom: 5px;
-  padding-left: 3px;
+  margin-bottom: 2px;
+  padding-left: 2px;
 }
 
 .resume-display-box li:last-child {
@@ -659,19 +660,25 @@ body {
   gap: 8px;
 }
 
-.resume-textarea {
+.resume-textarea,
+#adminResumeTextarea {
   width: 100%;
   flex: 1;
   min-height: 235px;
-  padding: 12px 14px;
+  padding: 11px 13px;
   border: 1.5px solid var(--accent);
   border-radius: 10px;
   font-family: inherit;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 9pt;
+  line-height: 1.2;
   color: var(--text);
   background: #ffffff;
   resize: vertical;
+}
+
+#adminResumeTextarea {
+  min-height: 140px;
+  border: 1px solid var(--border-strong);
 }
 
 .resume-textarea:focus {
