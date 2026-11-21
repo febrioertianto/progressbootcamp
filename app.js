@@ -66,7 +66,7 @@
         { id: 6, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: 0, status: "Not Started" },
         // Migrasi Fasop (Biru)
         { id: 7, category: "Migrasi Fasop", name: "Service Migrasi", progress: 0, status: "Not Started" },
-        { id: 8, category: "Migrasi Fasop", name: "Migrasi Data Fasop", progress: 0, status: "Not Started" },
+        { id: 8, category: "Migrasi Fasop", name: "Migrasi (Data, Photo & File)", progress: 0, status: "Not Started" },
         // Stress Test (Oranye)
         { id: 9, category: "Stress Test", name: "Stress Test", progress: 0, status: "Not Started" }
       ],
@@ -90,10 +90,17 @@
       resumeText = [latest.title, latest.narrative].filter(Boolean).join("\n\n");
     }
 
-    // Jika sudah schemaVersion >= 3, pertahankan seluruh task termasuk tambahan manual user
+    // Jika sudah schemaVersion >= 3, pertahankan seluruh task & terapkan rename terbaru
     if (Number(raw.schemaVersion) >= SCHEMA_VERSION) {
+      const renamedTasks = raw.tasks.map((t) => {
+        if (String(t.name || "").trim().toLowerCase() === "migrasi data fasop") {
+          return { ...t, name: "Migrasi (Data, Photo & File)" };
+        }
+        return t;
+      });
       return {
         ...raw,
+        tasks: renamedTasks,
         schemaVersion: SCHEMA_VERSION,
         resumeReport: resumeText,
         reportTimestamp: raw.reportTimestamp || raw.updatedAt || new Date().toISOString(),
@@ -129,7 +136,7 @@
       { id: 5, category: "Power Swift - ERS", name: "Monitoring Stock", progress: findOldPct(["monitoring stock"]) },
       { id: 6, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: findOldPct(["skenario test"]) },
       { id: 7, category: "Migrasi Fasop", name: "Service Migrasi", progress: findOldPct(["service migrasi"]) },
-      { id: 8, category: "Migrasi Fasop", name: "Migrasi Data Fasop", progress: findOldPct(["migrasi data"]) },
+      { id: 8, category: "Migrasi Fasop", name: "Migrasi (Data, Photo & File)", progress: findOldPct(["migrasi data", "migrasi (data"]) },
       { id: 9, category: "Stress Test", name: "Stress Test", progress: stressAvg }
     ].map((t) => ({ ...t, status: toStatus(t.progress) }));
 
@@ -466,6 +473,7 @@
 
   function renderTaskChart() {
     if (typeof Chart === "undefined") return;
+    Chart.defaults.font.family = '"Calibri", "Carlito", "Segoe UI", Arial, sans-serif';
     const filtered = appData.tasks.filter(
       (t) => chartCategoryFilter === "ALL" || t.category === chartCategoryFilter
     );
