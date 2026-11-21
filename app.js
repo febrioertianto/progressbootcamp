@@ -21,6 +21,8 @@
       cardTitle: "Total Progress Power Swift",
       eyebrow: "⚡ Power Swift",
       short: "ers",
+      weight: 0.50,
+      weightLabel: "50%",
       color: "#059669",
       bg: "rgba(5, 150, 105, 0.9)",
       goal: "Kamis Siaap UAT !!"
@@ -30,6 +32,8 @@
       cardTitle: "Total Progress Migrasi Fasop",
       eyebrow: "🔄 Migrasi Fasop",
       short: "mig",
+      weight: 0.35,
+      weightLabel: "35%",
       color: "#0284c7",
       bg: "rgba(2, 132, 199, 0.9)",
       goal: "Data Fasop Kal In Production"
@@ -39,6 +43,8 @@
       cardTitle: "Total Progress Stress Test",
       eyebrow: "🔥 Stress Test",
       short: "stress",
+      weight: 0.15,
+      weightLabel: "15%",
       color: "#d97706",
       bg: "rgba(217, 119, 6, 0.9)",
       goal: "Rekomendasi Jumlah POD standby"
@@ -260,25 +266,63 @@
     return CATEGORIES.find((c) => c.name === catName) || CATEGORIES[0];
   }
 
+  function formatPctID(val, maxDec = 1) {
+    const num = Math.max(0, Math.min(100, Number(val) || 0));
+    const rounded = Number(num.toFixed(maxDec));
+    if (Number.isInteger(rounded)) return String(rounded);
+    return rounded.toFixed(maxDec).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+  }
+
+  function formatContribID(val) {
+    const num = Math.max(0, Math.min(100, Number(val) || 0));
+    const r2 = Math.round(num * 100) / 100;
+    const isOneDecClean = Math.abs(r2 * 10 - Math.round(r2 * 10)) < 0.001;
+    const str = isOneDecClean ? r2.toFixed(1) : r2.toFixed(2);
+    return str.replace(".", ",");
+  }
+
   function calculateMetrics(tasks) {
     const list = Array.isArray(tasks) ? tasks : [];
     const totalCount = list.length;
-    const sumAll = list.reduce((acc, t) => acc + (Number(t.progress) || 0), 0);
-    const overallAvg = totalCount > 0 ? Math.round(sumAll / totalCount) : 0;
     const doneCount = list.filter((t) => Number(t.progress) >= 100 || t.status === "Done").length;
 
     const byCategory = {};
+    let weightedSum = 0;
+
     CATEGORIES.forEach((cat) => {
       const catTasks = list.filter((t) => t.category === cat.name);
       const count = catTasks.length;
-      const avg = count > 0
-        ? Math.round(catTasks.reduce((a, t) => a + (Number(t.progress) || 0), 0) / count)
+      const avgExact = count > 0
+        ? catTasks.reduce((a, t) => a + (Number(t.progress) || 0), 0) / count
         : 0;
+      const avg = Math.round(avgExact);
+      const contribution = avgExact * (cat.weight || 0);
+      weightedSum += contribution;
       const done = catTasks.filter((t) => Number(t.progress) >= 100 || t.status === "Done").length;
-      byCategory[cat.name] = { count, avg, done, meta: cat };
+
+      byCategory[cat.name] = {
+        count,
+        avg,
+        avgExact,
+        avgDisplay: formatPctID(avgExact, 1),
+        contribution,
+        contribDisplay: formatContribID(contribution),
+        done,
+        meta: cat
+      };
     });
 
-    return { overallAvg, totalCount, doneCount, byCategory };
+    const overallWeighted = Math.round(weightedSum * 10) / 10;
+    const overallDisplay = formatPctID(overallWeighted, 1);
+
+    return {
+      overallAvg: Math.round(weightedSum),
+      overallWeighted,
+      overallDisplay,
+      totalCount,
+      doneCount,
+      byCategory
+    };
   }
 
   let toastTimer = null;
@@ -446,11 +490,12 @@
     const tsFormatted = formatTimestampID(appData.reportTimestamp || appData.updatedAt);
 
     document.getElementById("headerOverallBadge").textContent =
-      `📊 Overall: ${metrics.overallAvg}% (${metrics.doneCount}/${metrics.totalCount} Selesai)`;
+      `📊 Overall Berbobot: ${metrics.overallDisplay}% (${metrics.doneCount}/${metrics.totalCount} Selesai)`;
     document.getElementById("headerTimestampBadge").textContent = `🕒 Report: ${tsFormatted}`;
     document.getElementById("reportTimestampText").textContent = tsFormatted;
 
     renderHeroCards(metrics);
+    renderWeightedBanner(metrics);
     renderTaskChart();
     renderResumePanel(metrics);
 
@@ -466,25 +511,28 @@
 
     grid.innerHTML = CATEGORIES.map((cat) => {
       const info = metrics.byCategory[cat.name];
-      const pct = Math.max(0, Math.min(100, info.avg));
-      const dashOffset = circumference - (pct / 100) * circumference;
+      const pctExact = Math.max(0, Math.min(100, info.avgExact));
+      const dashOffset = circumference - (pctExact / 100) * circumference;
 
       return `
         <div class="hero-card ${cat.short}">
           <div class="hero-card-left">
-            <div class="hero-card-eyebrow">${escapeHtml(cat.eyebrow)}</div>
+            <div class="eyebrow-row">
+              <span class="hero-card-eyebrow">${escapeHtml(cat.eyebrow)}</span>
+              <span class="weight-badge">⚖️ Bobot: ${escapeHtml(cat.weightLabel)}</span>
+            </div>
             <div class="hero-card-title">${escapeHtml(cat.cardTitle)}</div>
             <div class="hero-card-goal" title="${escapeHtml(cat.goal)}">Goal: ${escapeHtml(cat.goal)}</div>
             <div class="hero-bar-track">
-              <div class="hero-bar-fill" style="width:${pct}%"></div>
+              <div class="hero-bar-fill" style="width:${pctExact.toFixed(2)}%"></div>
             </div>
             <div class="hero-card-meta">
               <span>${info.done} dari ${info.count} Task Selesai</span>
-              <span>${pct}%</span>
+              <span class="contrib-pill">Kontribusi: ${info.contribDisplay}%</span>
             </div>
           </div>
 
-          <div class="hero-ring" aria-label="${pct}%">
+          <div class="hero-ring" aria-label="${info.avgDisplay}%">
             <svg viewBox="0 0 82 82">
               <circle class="hero-ring-bg" cx="41" cy="41" r="${radius}"></circle>
               <circle
@@ -497,13 +545,56 @@
               ></circle>
             </svg>
             <div class="hero-ring-label">
-              ${pct}%
+              ${info.avgDisplay}%
               <span>Done</span>
             </div>
           </div>
         </div>
       `;
     }).join("");
+  }
+
+  function renderWeightedBanner(metrics) {
+    const banner = document.getElementById("weightedBanner");
+    if (!banner) return;
+
+    const ersW = metrics.byCategory["Power Swift - ERS"].contribution;
+    const migW = metrics.byCategory["Migrasi Fasop"].contribution;
+    const stressW = metrics.byCategory["Stress Test"].contribution;
+    const totalPct = Math.max(0, Math.min(100, metrics.overallWeighted));
+
+    const radius = 31;
+    const circumference = 2 * Math.PI * radius;
+    const dashOffset = circumference - (totalPct / 100) * circumference;
+
+    banner.innerHTML = `
+      <div class="wb-left-title">📊 Total Progress Penyelesaian</div>
+
+      <div class="wb-middle">
+        <div class="stacked-bar-track" title="Power Swift: ${formatContribID(ersW)}% | Migrasi Fasop: ${formatContribID(migW)}% | Stress Test: ${formatContribID(stressW)}%">
+          <div class="seg-ers" style="width:${ersW.toFixed(2)}%"></div>
+          <div class="seg-mig" style="width:${migW.toFixed(2)}%"></div>
+          <div class="seg-stress" style="width:${stressW.toFixed(2)}%"></div>
+        </div>
+      </div>
+
+      <div class="wb-circle-wrap" aria-label="${metrics.overallDisplay}%">
+        <svg class="wb-circle-ring" viewBox="0 0 72 72">
+          <circle class="wb-circle-ring-bg" cx="36" cy="36" r="${radius}"></circle>
+          <circle
+            class="wb-circle-ring-fill"
+            cx="36"
+            cy="36"
+            r="${radius}"
+            stroke-dasharray="${circumference.toFixed(2)}"
+            stroke-dashoffset="${dashOffset.toFixed(2)}"
+          ></circle>
+        </svg>
+        <div class="wb-circle-value">
+          <span class="wb-num">${metrics.overallDisplay}</span><span class="wb-pct">%</span>
+        </div>
+      </div>
+    `;
   }
 
   function renderTaskChart() {
@@ -697,8 +788,8 @@
 
     document.getElementById("resumeFooterStats").innerHTML = `
       <div class="mini-stat">
-        <div class="mini-stat-label">Overall</div>
-        <div class="mini-stat-val" style="color:var(--primary);">${metrics.overallAvg}%</div>
+        <div class="mini-stat-label">Overall Berbobot</div>
+        <div class="mini-stat-val" style="color:var(--primary);">${metrics.overallDisplay}%</div>
       </div>
       <div class="mini-stat">
         <div class="mini-stat-label">Selesai</div>
@@ -788,8 +879,8 @@
     const el = document.getElementById("liveAvgPreview");
     if (el) {
       el.textContent =
-        `Overall: ${metrics.overallAvg}% | Power Swift: ${metrics.byCategory["Power Swift - ERS"].avg}% | ` +
-        `Migrasi Fasop: ${metrics.byCategory["Migrasi Fasop"].avg}% | Stress Test: ${metrics.byCategory["Stress Test"].avg}%`;
+        `Total Progress Berbobot: ${metrics.overallDisplay}% | Power Swift (50%): ${metrics.byCategory["Power Swift - ERS"].avgDisplay}% | ` +
+        `Migrasi Fasop (35%): ${metrics.byCategory["Migrasi Fasop"].avgDisplay}% | Stress Test (15%): ${metrics.byCategory["Stress Test"].avgDisplay}%`;
     }
   }
 

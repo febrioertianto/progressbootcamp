@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20261121c" />
+  <link rel="stylesheet" href="styles.css?v=20261121d" />
   <!-- Chart.js & DataLabels Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -41,8 +41,11 @@
          ========================================================== -->
     <div id="dashboardView">
 
-      <!-- 3 Eye-Catching Category Hero Cards -->
+      <!-- 3 Eye-Catching Category Hero Cards (with Bobot & Kontribusi) -->
       <section class="hero-cards-grid" id="heroCardsGrid"></section>
+
+      <!-- Total Progress Penyelesaian Banner (Prototype v2: Stacked Bar + Circle Badge) -->
+      <section class="weighted-banner" id="weightedBanner"></section>
 
       <!-- Main Split: Task Progress Chart (Left) + Resume Report (Right) -->
       <section class="main-split-grid">
@@ -66,9 +69,9 @@
               <canvas id="taskChart"></canvas>
             </div>
             <div class="chart-legend-strip">
-              <span class="legend-item"><span class="legend-dot" style="background:#059669;"></span>Power Swift</span>
-              <span class="legend-item"><span class="legend-dot" style="background:#0284c7;"></span>Migrasi Fasop</span>
-              <span class="legend-item"><span class="legend-dot" style="background:#d97706;"></span>Stress Test</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#059669;"></span>Power Swift (Bobot 50%)</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#0284c7;"></span>Migrasi Fasop (Bobot 35%)</span>
+              <span class="legend-item"><span class="legend-dot" style="background:#d97706;"></span>Stress Test (Bobot 15%)</span>
             </div>
           </div>
         </div>
@@ -339,7 +342,7 @@
   <!-- Toast Notification -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="config.js?v=20261121c"></script>
-  <script src="app.js?v=20261121c"></script>
+  <script src="config.js?v=20261121d"></script>
+  <script src="app.js?v=20261121d"></script>
 </body>
 </html>

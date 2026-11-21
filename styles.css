@@ -286,22 +286,46 @@ body {
   min-width: 0;
 }
 
+.eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
 .hero-card-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   background: rgba(255, 255, 255, 0.18);
-  padding: 3px 9px;
+  padding: 2px 9px;
   border-radius: 999px;
-  margin-bottom: 7px;
 }
 
+.weight-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 2px 9px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+}
+
+.hero-card.ers .weight-badge { color: #065f46; }
+.hero-card.mig .weight-badge { color: #075985; }
+.hero-card.stress .weight-badge { color: #9a3412; }
+
 .hero-card-title {
-  font-size: 17px;
+  font-size: 17.5px;
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 4px;
@@ -311,7 +335,7 @@ body {
   font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.94);
-  margin-bottom: 10px;
+  margin-bottom: 9px;
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
@@ -338,10 +362,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-top: 6px;
   font-size: 11.5px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.contrib-pill {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 /* Circular SVG Progress Ring */
@@ -381,7 +414,7 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 18.5px;
   line-height: 1;
 }
 
@@ -391,6 +424,121 @@ body {
   opacity: 0.85;
   margin-top: 2px;
   text-transform: uppercase;
+}
+
+/* ==================== TOTAL PROGRESS PENYELESAIAN BANNER (V2) ==================== */
+.weighted-banner {
+  background: #ffffff;
+  border: 1.5px solid var(--border-strong);
+  border-left: 6px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+}
+
+.wb-left-title {
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
+
+.wb-middle {
+  display: flex;
+  align-items: center;
+}
+
+.stacked-bar-track {
+  width: 100%;
+  height: 18px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.seg-ers {
+  background: linear-gradient(90deg, #059669, #10b981);
+  height: 100%;
+  transition: width 0.45s ease;
+}
+
+.seg-mig {
+  background: linear-gradient(90deg, #0284c7, #0ea5e9);
+  height: 100%;
+  transition: width 0.45s ease;
+}
+
+.seg-stress {
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+  height: 100%;
+  transition: width 0.45s ease;
+}
+
+.wb-circle-wrap {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #062849 0%, #0b4f8a 60%, #0284c7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(11, 79, 138, 0.32), 0 0 0 4px #e0f2fe;
+  flex-shrink: 0;
+}
+
+.wb-circle-ring {
+  position: absolute;
+  inset: 3px;
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+}
+
+.wb-circle-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 4.5;
+}
+
+.wb-circle-ring-fill {
+  fill: none;
+  stroke: #38bdf8;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.wb-circle-value {
+  position: relative;
+  z-index: 1;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  line-height: 1;
+}
+
+.wb-num {
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+}
+
+.wb-pct {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.88;
+  margin-left: 1px;
 }
 
 /* ==================== MAIN SPLIT WORKSPACE (1 SCREEN) ==================== */
@@ -540,22 +688,25 @@ body {
   background: #ffffff;
   border: 1.5px dashed #1e4b8f;
   border-radius: 14px;
-  padding: 12px 15px;
+  padding: 11px 14px;
   font-size: 9pt;
   line-height: 1.2;
   color: #1e293b;
   overflow-y: auto;
   min-height: 215px;
-  max-height: 280px;
+  max-height: 295px;
+  column-count: 2;
+  column-gap: 16px;
 }
 
 /* Structured Paragraph & Bullet Typography inside Resume Box (Size 9pt, Single Spacing) */
 .resume-display-box h4 {
-  font-size: 10pt;
+  font-size: 9.5pt;
   font-weight: 800;
   color: #0b4f8a;
   line-height: 1.2;
-  margin: 6px 0 3px;
+  margin: 6px 0 2px;
+  break-after: avoid;
 }
 
 .resume-display-box h4:first-child {
@@ -1017,6 +1168,13 @@ textarea.form-control {
   .hero-cards-grid {
     grid-template-columns: 1fr;
   }
+  .weighted-banner {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+  .weighted-banner .wb-left-title {
+    grid-column: 1 / -1;
+  }
   .main-split-grid,
   .admin-task-grid,
   .sync-grid {
@@ -1039,6 +1197,9 @@ textarea.form-control {
   }
   .brand-logo-img {
     height: 28px;
+  }
+  .resume-display-box {
+    column-count: 1;
   }
 }
 
