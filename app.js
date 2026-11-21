@@ -366,7 +366,7 @@
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "save",
-          pin: getConfig().ADMIN_PIN,
+          pin: getConfig().API_PIN || getConfig().ADMIN_PIN || "2026",
           data: data
         })
       });
@@ -1164,7 +1164,7 @@
           method: "POST",
           redirect: "follow",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "ping", pin: getConfig().ADMIN_PIN })
+          body: JSON.stringify({ action: "ping", pin: getConfig().API_PIN || getConfig().ADMIN_PIN || "2026" })
         });
         const json = await safeParseAppsScriptResponse(res);
         if (!json.ok) throw new Error(json.error || "PIN tidak cocok.");
