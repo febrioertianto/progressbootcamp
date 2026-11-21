@@ -5,9 +5,10 @@
 (function () {
   "use strict";
 
-  const SCHEMA_VERSION = 3;
-  const STORAGE_KEY = "power_inspect_dashboard_data_v3";
+  const SCHEMA_VERSION = 4;
+  const STORAGE_KEY = "power_inspect_dashboard_data_v4";
   const LEGACY_STORAGE_KEYS = [
+    "power_inspect_dashboard_data_v3",
     "power_inspect_dashboard_data_v2",
     "power_inspect_dashboard_data_v1"
   ];
@@ -59,24 +60,26 @@
       tasks: [
         // Power Swift (Hijau)
         { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: 0, status: "Not Started" },
-        { id: 2, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: 0, status: "Not Started" },
-        { id: 3, category: "Power Swift - ERS", name: "Karantina Mobile", progress: 0, status: "Not Started" },
-        { id: 4, category: "Power Swift - ERS", name: "Tindak Lanjut", progress: 0, status: "Not Started" },
-        { id: 5, category: "Power Swift - ERS", name: "Monitoring Stock", progress: 0, status: "Not Started" },
-        { id: 6, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: 0, status: "Not Started" },
+        { id: 2, category: "Power Swift - ERS", name: "Karantina Mobile", progress: 0, status: "Not Started" },
+        { id: 3, category: "Power Swift - ERS", name: "Sync & SOP Mobile", progress: 0, status: "Not Started" },
+        { id: 4, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: 0, status: "Not Started" },
+        { id: 5, category: "Power Swift - ERS", name: "Tindak Lanjut", progress: 0, status: "Not Started" },
+        { id: 6, category: "Power Swift - ERS", name: "Monitoring Stock", progress: 0, status: "Not Started" },
+        { id: 7, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: 0, status: "Not Started" },
         // Migrasi Fasop (Biru)
-        { id: 7, category: "Migrasi Fasop", name: "Service Migrasi", progress: 0, status: "Not Started" },
-        { id: 8, category: "Migrasi Fasop", name: "Migrasi (Data, Photo & File)", progress: 0, status: "Not Started" },
+        { id: 8, category: "Migrasi Fasop", name: "Service Migrasi", progress: 0, status: "Not Started" },
+        { id: 9, category: "Migrasi Fasop", name: "Migrasi (Data, Photo & File)", progress: 0, status: "Not Started" },
         // Stress Test (Oranye)
-        { id: 9, category: "Stress Test", name: "Stress Test", progress: 0, status: "Not Started" }
+        { id: 10, category: "Stress Test", name: "Stress Test", progress: 0, status: "Not Started" }
       ],
       dailyLogs: []
     };
   }
 
   /**
-   * Migrasi aman dari skema lama (14/15 task) ke skema v3 (9 task ringkas)
-   * sambil mempertahankan angka progress yang sudah pernah diinput user.
+   * Migrasi aman dari skema lama ke skema v4 (10 task, dengan "Sync & SOP Mobile"
+   * di urutan #3 setelah Dashboard Mobile & Karantina Mobile, dan Verifikasi Karantina di #4)
+   * sambil mempertahankan seluruh angka progress & task tambahan user.
    */
   function normalizeData(raw) {
     if (!raw || !Array.isArray(raw.tasks)) return createDefaultData();
@@ -90,17 +93,12 @@
       resumeText = [latest.title, latest.narrative].filter(Boolean).join("\n\n");
     }
 
-    // Jika sudah schemaVersion >= 3, pertahankan seluruh task & terapkan rename terbaru
-    if (Number(raw.schemaVersion) >= SCHEMA_VERSION) {
-      const renamedTasks = raw.tasks.map((t) => {
-        if (String(t.name || "").trim().toLowerCase() === "migrasi data fasop") {
-          return { ...t, name: "Migrasi (Data, Photo & File)" };
-        }
-        return t;
-      });
+    const ver = Number(raw.schemaVersion) || 0;
+
+    // Jika sudah schemaVersion >= 4, pertahankan seluruh task & urutan apa adanya
+    if (ver >= SCHEMA_VERSION) {
       return {
         ...raw,
-        tasks: renamedTasks,
         schemaVersion: SCHEMA_VERSION,
         resumeReport: resumeText,
         reportTimestamp: raw.reportTimestamp || raw.updatedAt || new Date().toISOString(),
@@ -109,7 +107,43 @@
       };
     }
 
-    // Migrasi dari versi lama (< 3) ke 9 task ringkas
+    // Migrasi dari v3 -> v4: jaga semua angka progress & custom task, sisipkan "Sync & SOP Mobile" di #3 & urutkan #1-#4
+    if (ver === 3) {
+      const renamed = raw.tasks.map((t) => {
+        if (String(t.name || "").trim().toLowerCase() === "migrasi data fasop") {
+          return { ...t, name: "Migrasi (Data, Photo & File)" };
+        }
+        return { ...t };
+      });
+
+      const takeTask = (targetName) => {
+        const idx = renamed.findIndex(
+          (t) => String(t.name || "").trim().toLowerCase() === targetName.toLowerCase()
+        );
+        if (idx === -1) return null;
+        return renamed.splice(idx, 1)[0];
+      };
+
+      const maxId = raw.tasks.reduce((m, t) => Math.max(m, Number(t.id) || 0), 0);
+      const tDash = takeTask("Dashboard Mobile") || { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: 0, status: "Not Started" };
+      const tKarMob = takeTask("Karantina Mobile") || { id: 2, category: "Power Swift - ERS", name: "Karantina Mobile", progress: 0, status: "Not Started" };
+      const tSync = takeTask("Sync & SOP Mobile") || { id: maxId + 1, category: "Power Swift - ERS", name: "Sync & SOP Mobile", progress: 0, status: "Not Started" };
+      const tVerif = takeTask("Verifikasi Karantina") || { id: 4, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: 0, status: "Not Started" };
+
+      const reordered = [tDash, tKarMob, tSync, tVerif, ...renamed];
+
+      return {
+        ...raw,
+        schemaVersion: SCHEMA_VERSION,
+        tasks: reordered,
+        resumeReport: resumeText,
+        reportTimestamp: raw.reportTimestamp || raw.updatedAt || new Date().toISOString(),
+        updatedAt: raw.updatedAt || new Date().toISOString(),
+        dailyLogs: Array.isArray(raw.dailyLogs) ? raw.dailyLogs : []
+      };
+    }
+
+    // Migrasi dari versi sangat lama (< 3) ke 10 task v4
     const findOldPct = (keywords) => {
       const found = raw.tasks.find((t) => {
         const lower = String(t.name || "").toLowerCase();
@@ -130,14 +164,15 @@
 
     const migratedTasks = [
       { id: 1, category: "Power Swift - ERS", name: "Dashboard Mobile", progress: findOldPct(["dashboard mobile"]) },
-      { id: 2, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: findOldPct(["verifikasi karantina"]) },
-      { id: 3, category: "Power Swift - ERS", name: "Karantina Mobile", progress: findOldPct(["karantina mobile"]) },
-      { id: 4, category: "Power Swift - ERS", name: "Tindak Lanjut", progress: findOldPct(["tindak lanjut"]) },
-      { id: 5, category: "Power Swift - ERS", name: "Monitoring Stock", progress: findOldPct(["monitoring stock"]) },
-      { id: 6, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: findOldPct(["skenario test"]) },
-      { id: 7, category: "Migrasi Fasop", name: "Service Migrasi", progress: findOldPct(["service migrasi"]) },
-      { id: 8, category: "Migrasi Fasop", name: "Migrasi (Data, Photo & File)", progress: findOldPct(["migrasi data", "migrasi (data"]) },
-      { id: 9, category: "Stress Test", name: "Stress Test", progress: stressAvg }
+      { id: 2, category: "Power Swift - ERS", name: "Karantina Mobile", progress: findOldPct(["karantina mobile"]) },
+      { id: 3, category: "Power Swift - ERS", name: "Sync & SOP Mobile", progress: findOldPct(["sync & sop", "sop mobile"]) },
+      { id: 4, category: "Power Swift - ERS", name: "Verifikasi Karantina", progress: findOldPct(["verifikasi karantina"]) },
+      { id: 5, category: "Power Swift - ERS", name: "Tindak Lanjut", progress: findOldPct(["tindak lanjut"]) },
+      { id: 6, category: "Power Swift - ERS", name: "Monitoring Stock", progress: findOldPct(["monitoring stock"]) },
+      { id: 7, category: "Power Swift - ERS", name: "Dok Skenario Test", progress: findOldPct(["skenario test"]) },
+      { id: 8, category: "Migrasi Fasop", name: "Service Migrasi", progress: findOldPct(["service migrasi"]) },
+      { id: 9, category: "Migrasi Fasop", name: "Migrasi (Data, Photo & File)", progress: findOldPct(["migrasi data", "migrasi (data"]) },
+      { id: 10, category: "Stress Test", name: "Stress Test", progress: stressAvg }
     ].map((t) => ({ ...t, status: toStatus(t.progress) }));
 
     return {
@@ -1219,7 +1254,7 @@
     });
 
     document.getElementById("btnRestoreDemo").addEventListener("click", async () => {
-      if (!confirm("Reset ke 9 task bawaan?")) return;
+      if (!confirm("Reset ke 10 task bawaan?")) return;
       appData = createDefaultData();
       await persistChanges(false);
     });
